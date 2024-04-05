@@ -86,3 +86,11 @@ from accident
 group by
 datename(MONTH, Date)
 order by Month_name desc
+
+-- INSIGHTS
+
+-- urban are has more accidents than rural with friday the most accident recorded day
+-- cars have been involved the most, followed by Van even on the fine day no high winds
+-- there's not enough data but what we have from that we can conclude that Journey as part of work had most casualties
+-- in day light accidents have occured frequently, wet & damp roads have the most impact on accidents
+-- september to october has more accidents as compare to others
