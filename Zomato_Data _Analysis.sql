@@ -71,14 +71,14 @@ SELECT item, name FROM Fav_food
 WHERE RowNum = 1;
 
 --8 top 10 highest amount generating Restaurant
-SELECT TOP 10 SUM(o.user_id) AS Total_Sales, r.name FROM orders o 
+SELECT TOP 10 SUM(o.(o.sales_amount) AS Total_Sales, r.name FROM orders o 
 JOIN menu m ON m.r_id = o.r_id
 JOIN restaurant r ON r.id = m.r_id
 GROUP BY r.name
 ORDER BY Total_Sales DESC
 
 --9 top 10 highest amount generating Food
-SELECT TOP 10 SUM(o.user_id) AS Total_Sales, f.item FROM orders o 
+SELECT TOP 10 SUM(o.(o.sales_amount) AS Total_Sales, f.item FROM orders o 
 JOIN menu m ON m.r_id = o.r_id
 JOIN restaurant r ON r.id = m.r_id
 JOIN food f ON f.f_id = m.f_id
