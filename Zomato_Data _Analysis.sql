@@ -151,6 +151,27 @@ SELECT item, name, Highest_qty FROM Fav_food
 WHERE RowNum = 1
 ORDER BY Highest_qty DESC
 
+-- 16 month-over-month growth in active users for each city.
+WITH MonthlyUsers AS (
+SELECT r.city, FORMAT(o.order_date, 'yyyy-MM') AS YearMonth,
+COUNT(DISTINCT o.user_id) AS ActiveUsers
+FROM orders o
+JOIN restaurant r ON r.id = o.r_id
+GROUP BY r.city, FORMAT(o.order_date, 'yyyy-MM')
+),
+MOM AS (
+SELECT city, YearMonth, ActiveUsers,
+LAG(ActiveUsers) OVER (PARTITION BY city ORDER BY YearMonth) AS PrevMonthUsers
+FROM MonthlyUsers
+)
+SELECT city, YearMonth, ActiveUsers, PrevMonthUsers,
+CASE 
+WHEN PrevMonthUsers IS NULL THEN NULL
+ELSE ROUND(((ActiveUsers - PrevMonthUsers) * 100.0) / PrevMonthUsers, 2)
+END AS MoMUserGrowthPercent
+FROM MOM
+ORDER BY city, YearMonth; 
+
 -- INSIGHTS
 
 --- Total customers 100000 out of which 22071 user have made account on zomato but haven't place any order yet,
