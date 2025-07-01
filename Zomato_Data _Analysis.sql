@@ -10,18 +10,22 @@ SELECT * FROM food
 SELECT COUNT(*) AS Total FROM users
 
 --1 number of customers who order veg & non veg
-SELECT COUNT(o.user_id) AS Total, f.veg_or_non_veg FROM users u
+SELECT 
+   COUNT(o.user_id) AS Total, f.veg_or_non_veg FROM users u
 JOIN orders o ON u.user_id = o.user_id
 JOIN menu m ON m.r_id = o.r_id
 JOIN food f ON f.f_id = m.f_id
 GROUP BY f.veg_or_non_veg
 
 --2 customers who have never ordered
-SELECT COUNT(user_id) Not_ordered From users
+SELECT 
+   COUNT(user_id) Not_ordered From users
 WHERE user_id NOT IN (SELECT user_id FROM orders)
 
 --3 average price of each item
-SELECT AVG(m.price) AS Avg_price, f.item FROM users u
+SELECT 
+   AVG(m.price) AS Avg_price, 
+   f.item FROM users u
 JOIN orders o ON u.user_id = o.user_id
 JOIN menu m ON m.r_id = o.r_id
 JOIN food f ON f.f_id = m.f_id
@@ -30,27 +34,37 @@ GROUP BY f.item
 ORDER BY Avg_price DESC
 
 --4 Find the top restaurant in terms of number of orders
-SELECT r.name, COUNT(o.user_id) AS total_orders FROM restaurant r
+SELECT 
+  r.name, 
+  COUNT(o.user_id) AS total_orders FROM restaurant r
 JOIN orders o ON o.r_id = r.id
 WHERE r.name IS NOT NULL
 GROUP BY r.name
 ORDER BY total_orders desc
 
 -- 5 Find the top restaurant in terms of number of orders from a given month
-SELECT r.name, COUNT(o.user_id) AS total_orders, DATENAME(MONTH, order_date) AS order_date FROM restaurant r
+SELECT 
+  r.name, COUNT(o.user_id) AS total_orders, 
+  DATENAME(MONTH, order_date) AS order_date 
+FROM restaurant r
 JOIN orders o ON o.user_id = r.id
 WHERE r.name IS NOT NULL
 GROUP BY r.name, DATENAME(MONTH, order_date)
 ORDER BY total_orders desc
 -- OR
-SELECT r.name, COUNT(*) AS total_orders, DATENAME(MONTH, order_date) AS order_date FROM restaurant r
+SELECT 
+   r.name, COUNT(*) AS total_orders, 
+   DATENAME(MONTH, order_date) AS order_date 
+FROM restaurant r
 join orders o ON o.user_id = r.id
 WHERE r.name IS NOT NULL AND DATENAME(MONTH, order_date) = 'June'
 GROUP BY r.name, DATENAME(MONTH, order_date)
 ORDER BY r.name
 
 --6 restaurant with monthly sales > x 
-SELECT r.name, SUM(o.sales_amount) AS Total, DATENAME(MONTH, order_date) order_date FROM restaurant r
+SELECT 
+   r.name, SUM(o.sales_amount) AS Total, 
+   DATENAME(MONTH, order_date) order_date FROM restaurant r
 JOIN orders o ON r.id = o.r_id
 WHERE DATENAME(MONTH, order_date) = 'June' -- @month
 GROUP BY r.name, DATENAME(MONTH, order_date) 
@@ -59,26 +73,34 @@ ORDER BY Total DESC
 
 --7 most ordered food item from each restaurant
 With Fav_food AS(
-SELECT COUNT(o.user_id) AS Total, f.item, r.name,
-ROW_NUMBER() OVER(PARTITION BY r.id ORDER BY COUNT(o.user_id) DESC) AS RowNum
+  SELECT 
+    COUNT(o.user_id) AS Total, f.item, r.name,
+    ROW_NUMBER() OVER(PARTITION BY r.id ORDER BY COUNT(o.user_id) DESC) AS RowNum
 FROM orders o 
 JOIN menu m ON m.r_id = o.r_id
 JOIN restaurant r ON r.id = m.r_id
 JOIN food f ON f.f_id = m.f_id
 GROUP BY f.item, r.name, r.id
 )
-SELECT item, name FROM Fav_food
-WHERE RowNum = 1;
+SELECT 
+  item, name FROM Fav_food
+  WHERE RowNum = 1;
 
 --8 top 10 highest amount generating Restaurant
-SELECT TOP 10 SUM(o.(o.sales_amount) AS Total_Sales, r.name FROM orders o 
+SELECT 
+   TOP 10 SUM(o.(o.sales_amount) AS Total_Sales, 
+   r.name 
+FROM orders o 
 JOIN menu m ON m.r_id = o.r_id
 JOIN restaurant r ON r.id = m.r_id
 GROUP BY r.name
 ORDER BY Total_Sales DESC
 
 --9 top 10 highest amount generating Food
-SELECT TOP 10 SUM(o.sales_amount) AS Total_Sales, f.item FROM orders o 
+SELECT 
+   TOP 10 SUM(o.sales_amount) AS Total_Sales, 
+   f.item 
+FROM orders o 
 JOIN menu m ON m.r_id = o.r_id
 JOIN restaurant r ON r.id = m.r_id
 JOIN food f ON f.f_id = m.f_id
@@ -86,7 +108,9 @@ GROUP BY f.item
 ORDER BY Total_Sales DESC
 
 --10 most preferred cuisines
-SELECT TOP 10 COUNT(o.user_id) AS Total, m.cuisine FROM orders o 
+SELECT 
+   TOP 10 COUNT(o.user_id) AS Total, m.cuisine 
+FROM orders o 
 JOIN menu m ON m.r_id = o.r_id
 JOIN restaurant r ON r.id = m.r_id
 WHERE m.cuisine IS NOT NULL
@@ -94,15 +118,15 @@ GROUP BY m.cuisine
 ORDER BY Total DESC
 -- grouping
 SELECT
-CUISINE, COUNT(user_id) AS Total FROM (
+  CUISINE, COUNT(user_id) AS Total FROM (
 SELECT
-CASE 
-WHEN m.cuisine IN ('North Indian,Chinese', 'Chinese,Indian', 'Indian,Chinese', 'Chinese,North Indian') THEN 'Chinese Indian'
-WHEN m.cuisine IN ('North Indian', 'South Indian,North Indian', 'North Indian,South Indian') THEN 'North Indian'
-WHEN m.cuisine IN ('South Indian,North Indian', 'North Indian,South Indian') THEN 'Chinese'
-WHEN m.cuisine IN ('Chinese') THEN 'NorthIndian'
-ELSE 'Pizza' 
-END AS CUISINE, o.user_id FROM orders o 
+  CASE 
+     WHEN m.cuisine IN ('North Indian,Chinese', 'Chinese,Indian', 'Indian,Chinese', 'Chinese,North Indian') THEN 'Chinese Indian'
+     WHEN m.cuisine IN ('North Indian', 'South Indian,North Indian', 'North Indian,South Indian') THEN 'North Indian'
+     WHEN m.cuisine IN ('South Indian,North Indian', 'North Indian,South Indian') THEN 'Chinese'
+     WHEN m.cuisine IN ('Chinese') THEN 'NorthIndian'
+  ELSE 'Pizza' 
+  END AS CUISINE, o.user_id FROM orders o 
 JOIN menu m ON m.r_id = o.r_id
 JOIN restaurant r ON r.id = m.r_id
 WHERE m.cuisine IS NOT NULL
@@ -111,20 +135,27 @@ GROUP BY CUISINE
 ORDER BY Total DESC
 
 --11 total order by cities
-SELECT COUNT(o.user_id) AS Total, r.city FROM orders o 
+SELECT 
+   COUNT(o.user_id) AS Total, 
+   r.city 
+FROM orders o 
 JOIN menu m ON m.r_id = o.r_id
 JOIN restaurant r ON r.id = m.r_id
 GROUP BY r.city
 ORDER BY Total DESC
  
 --12 average rating of each restaurant
-SELECT ROUND(AVG(rating),2) AS Avg_rating, name FROM restaurant
+SELECT 
+   ROUND(AVG(rating),2) AS Avg_rating, name 
+FROM restaurant
 WHERE rating IS NOT NULL
 GROUP BY name
 ORDER BY Avg_rating DESC
 
 --13 Maximum orders placed by highest rated restaurants
-SELECT r.name, r.rating, MAX(o.user_id) AS Max_order FROM restaurant r
+SELECT 
+   r.name, r.rating, MAX(o.user_id) AS Max_order 
+FROM restaurant r
 JOIN orders o ON o.r_id = r.id
 JOIN users u ON u.user_id = o.user_id
 WHERE rating IS NOT NULL AND r.rating = 5
@@ -132,43 +163,45 @@ GROUP BY r.name, r.rating
 ORDER BY Max_order DESC
 
 --14 Who has been placing orders most in terms of occupation
-SELECT COUNT(*) AS Total_Orders, Occupation
+SELECT 
+   COUNT(*) AS Total_Orders, Occupation
 FROM users
 GROUP BY Occupation
 ORDER BY Total_Orders DESC
 
 --15 item ordered in max qty by each restaurant 
 With Fav_food AS(
-SELECT MAX(o.sales_qty) AS Highest_qty, f.item, r.name,
-ROW_NUMBER() OVER(PARTITION BY r.id ORDER BY MAX(o.sales_qty) DESC) AS RowNum
+   SELECT MAX(o.sales_qty) AS Highest_qty, 
+   f.item, r.name,
+      ROW_NUMBER() OVER(PARTITION BY r.id ORDER BY MAX(o.sales_qty) DESC) AS RowNum
 FROM orders o 
 JOIN menu m ON m.r_id = o.r_id
 JOIN restaurant r ON r.id = m.r_id
 JOIN food f ON f.f_id = m.f_id
 GROUP BY f.item, r.name, r.id
 )
-SELECT item, name, Highest_qty FROM Fav_food
+   SELECT item, name, Highest_qty FROM Fav_food
 WHERE RowNum = 1
 ORDER BY Highest_qty DESC
 
 -- 16 month-over-month growth in active users for each city.
 WITH MonthlyUsers AS (
-SELECT r.city, FORMAT(o.order_date, 'yyyy-MM') AS YearMonth,
-COUNT(DISTINCT o.user_id) AS ActiveUsers
+   SELECT r.city, FORMAT(o.order_date, 'yyyy-MM') AS YearMonth,
+    COUNT(DISTINCT o.user_id) AS ActiveUsers
 FROM orders o
 JOIN restaurant r ON r.id = o.r_id
 GROUP BY r.city, FORMAT(o.order_date, 'yyyy-MM')
 ),
 MOM AS (
-SELECT city, YearMonth, ActiveUsers,
-LAG(ActiveUsers) OVER (PARTITION BY city ORDER BY YearMonth) AS PrevMonthUsers
+   SELECT city, YearMonth, ActiveUsers,
+   LAG(ActiveUsers) OVER (PARTITION BY city ORDER BY YearMonth) AS PrevMonthUsers
 FROM MonthlyUsers
 )
-SELECT city, YearMonth, ActiveUsers, PrevMonthUsers,
-CASE 
-WHEN PrevMonthUsers IS NULL THEN NULL
-ELSE ROUND(((ActiveUsers - PrevMonthUsers) * 100.0) / PrevMonthUsers, 2)
-END AS MoMUserGrowthPercent
+   SELECT city, YearMonth, ActiveUsers, PrevMonthUsers,
+      CASE 
+         WHEN PrevMonthUsers IS NULL THEN NULL
+      ELSE ROUND(((ActiveUsers - PrevMonthUsers) * 100.0) / PrevMonthUsers, 2)
+      END AS MoMUserGrowthPercent
 FROM MOM
 ORDER BY city, YearMonth; 
 
